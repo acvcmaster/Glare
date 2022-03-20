@@ -46,11 +46,7 @@ impl<'a> Tokenizer<'a> {
                 kind: TokenizerSpecType::Skip,
             },
             TokenizerSpec {
-                regex: Regex::new(r"^//.*").unwrap(),
-                kind: TokenizerSpecType::Skip,
-            },
-            TokenizerSpec {
-                regex: Regex::new(r"^/\*[\s\S]*?\*/").unwrap(),
+                regex: Regex::new(r"^\#.*").unwrap(),
                 kind: TokenizerSpecType::Skip,
             },
             TokenizerSpec {
@@ -72,7 +68,7 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    pub fn get_next_token(&mut self) -> Result<Token, String> {
+    pub fn get_next_token(&mut self, consume: bool) -> Result<Option<Token>, String> {
         if self.has_more_tokens() {
             for spec in &self.specs {
                 if let Some(correspondence) = spec.regex.captures(&self.string[self.cursor..]) {
@@ -83,26 +79,28 @@ impl<'a> Tokenizer<'a> {
 
                             let result = match spec.kind {
                                 TokenizerSpecType::Number => match value.parse() {
-                                    Ok(parsed) => Ok(Token::Number(parsed)),
+                                    Ok(parsed) => Ok(Some(Token::Number(parsed))),
                                     Err(_) => {
                                         Err(format!("{} is too large for type 'Number'", value))
                                     }
                                 },
                                 TokenizerSpecType::String => {
-                                    Ok(Token::String((&value[1..length - 1]).to_owned()))
+                                    Ok(Some(Token::String((&value[1..length - 1]).to_owned())))
                                 }
                                 TokenizerSpecType::SimpleType => {
-                                    Ok(Token::SimpleType(value.to_owned()))
+                                    Ok(Some(Token::SimpleType(value.to_owned())))
                                 }
-                                TokenizerSpecType::Pipe => Ok(Token::Pipe),
+                                TokenizerSpecType::Pipe => Ok(Some(Token::Pipe)),
                                 TokenizerSpecType::Skip => {
                                     // Skip this token
                                     self.cursor += length;
-                                    return self.get_next_token();
+                                    return self.get_next_token(consume);
                                 }
                             };
 
-                            self.cursor += length;
+                            if consume {
+                                self.cursor += length;
+                            }
 
                             return result;
                         }
@@ -121,7 +119,8 @@ impl<'a> Tokenizer<'a> {
             return Err(format!("Unexpected symbol at index {}", self.cursor));
         }
 
-        Err("Unexpected EOF".to_string())
+        /* No more tokens */
+        Ok(None)
     }
 
     fn has_more_tokens(&mut self) -> bool {

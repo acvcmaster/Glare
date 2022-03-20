@@ -13,17 +13,14 @@ fn main() {
     configure_language();
 
     let a = r#"
-        /**
-         * This is a multiline comment.
-         * It has multiple lines.
-         */
+        # This is a comment
 
-        |
+        "Hello, planet!"
     "#;
     let mut tokenizer = Tokenizer::new(a);
     let mut parser = Parser::new(&mut tokenizer);
 
-    match parser.parse_literal() {
+    match parser.parse_pipe(true) {
         Ok(result) => println!("{:?}", result),
         Err(error) => println!("{}", error),
     }

@@ -1,8 +1,4 @@
-use crate::{
-    token::Token,
-    tokenizer::Tokenizer,
-    translation::{get_translated, TranslationKey},
-};
+use crate::{token::Token, tokenizer::Tokenizer};
 
 pub struct Parser<'a> {
     tokenizer: &'a mut Tokenizer<'a>,
@@ -47,6 +43,10 @@ impl TryFrom<String> for SimpleType {
     }
 }
 
+pub struct UnionType {
+    types: Vec<SimpleType>,
+}
+
 impl<'a> Parser<'a> {
     pub fn new(tokenizer: &'a mut Tokenizer<'a>) -> Self {
         Self { tokenizer }
@@ -58,13 +58,14 @@ impl<'a> Parser<'a> {
      *  | NumberLiteral
      *  ;
      */
-    pub fn parse_literal(&mut self) -> Result<Literal, String> {
-        match self.tokenizer.get_next_token() {
-            Ok(token) => match token {
+    pub fn parse_literal(&mut self, consume: bool) -> Result<Literal, String> {
+        match self.tokenizer.get_next_token(consume) {
+            Ok(Some(token)) => match token {
                 Token::String(string) => Ok(Literal::StringLiteral(string)),
                 Token::Number(number) => Ok(Literal::NumberLiteral(number)),
                 _ => Err(format!("Expected valid literal value (got {})", token)),
             },
+            Ok(None) => Err("Expected valid literal value (got EOF)".to_string()),
             Err(error) => Err(error),
         }
     }
@@ -80,26 +81,64 @@ impl<'a> Parser<'a> {
      *  | List
      * ;
      */
-    pub fn parse_simple_type(&mut self) -> Result<SimpleType, String> {
-        match self.tokenizer.get_next_token() {
-            Ok(token) => match token {
+    pub fn parse_simple_type(&mut self, consume: bool) -> Result<SimpleType, String> {
+        match self.tokenizer.get_next_token(consume) {
+            Ok(Some(token)) => match token {
                 Token::SimpleType(value) => match SimpleType::try_from(value) {
                     Ok(result) => Ok(result),
                     Err(error) => Err(error),
                 },
                 _ => Err(format!("Expected valid simple type (got {})", token)),
             },
+            Ok(None) => Err("Expected valid literal value (got EOF)".to_string()),
+            Err(error) => Err(error),
+        }
+    }
+
+    pub fn parse_pipe(&mut self, consume: bool) -> Result<(), String> {
+        match self.tokenizer.get_next_token(consume) {
+            Ok(Some(token)) => match token {
+                Token::Pipe => Ok(()),
+                _ => Err(format!("Expected pipe (got {})", token)),
+            },
+            Ok(None) => Err("Expected pipe (got EOF)".to_string()),
             Err(error) => Err(error),
         }
     }
 
     /**
-     * Type
-     *  : SimpleType
+     * UnionType
+     *  : SimpleType (Pipe SimpleTipe)*
      * ;
      */
-    pub fn parse_type(&mut self) -> Result<Type, String> {
-        match self.parse_simple_type() {
+    pub fn parse_union_type(&mut self, consume: bool) -> Result<SimpleType, String> {
+        let mut pipe = false;
+
+        loop {
+            let error = format!(
+                "Expected {} (got EOF)",
+                if pipe { "pipe" } else { "simple type" }
+            );
+
+            let result = match self.tokenizer.get_next_token(false) {
+                Ok(Some(token)) => Ok(()),
+                Ok(None) => Err(error),
+                Err(error) => Err(error),
+            };
+
+            /* Toggle pipe */
+            pipe = !pipe;
+        }
+    }
+
+    /**
+     * Type
+     *  : UnionType
+     *  | SimpleType
+     * ;
+     */
+    pub fn parse_type(&mut self, consume: bool) -> Result<Type, String> {
+        match self.parse_simple_type(consume) {
             Ok(value) => Ok(Type::SimpleType(value)),
             Err(error) => Err(error),
         }
