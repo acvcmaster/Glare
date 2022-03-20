@@ -73,6 +73,12 @@ SimpleType:
 Skip:
     : Whitespace
     | Comment
-    | MultilineComment
+;
+```
+
+### Pipe
+```
+Pipe:
+    : |
 ;
 ```

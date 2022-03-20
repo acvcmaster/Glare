@@ -95,6 +95,11 @@ impl<'a> Parser<'a> {
         }
     }
 
+    /**
+     * Pipe
+     *  : |
+     * ;
+     */
     pub fn parse_pipe(&mut self, consume: bool) -> Result<(), String> {
         match self.tokenizer.get_next_token(consume) {
             Ok(Some(token)) => match token {
