@@ -17,8 +17,8 @@ fn main() {
          * This is a multiline comment.
          * It has multiple lines.
          */
-        
-        None
+
+        |
     "#;
     let mut tokenizer = Tokenizer::new(a);
     let mut parser = Parser::new(&mut tokenizer);

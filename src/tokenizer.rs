@@ -6,6 +6,7 @@ pub enum TokenizerSpecType {
     Number,
     String,
     SimpleType,
+    Pipe,
     Skip,
 }
 
@@ -53,8 +54,12 @@ impl<'a> Tokenizer<'a> {
                 kind: TokenizerSpecType::Skip,
             },
             TokenizerSpec {
-                regex: Regex::new(r"^Number|str|String|None|()|Never|List|Array").unwrap(),
+                regex: Regex::new(r"^Number|str|String|None|\(\)|Never|List|Array").unwrap(),
                 kind: TokenizerSpecType::SimpleType,
+            },
+            TokenizerSpec {
+                regex: Regex::new(r"^\|").unwrap(),
+                kind: TokenizerSpecType::Pipe,
             },
         ];
 
@@ -73,22 +78,23 @@ impl<'a> Tokenizer<'a> {
                 if let Some(correspondence) = spec.regex.captures(&self.string[self.cursor..]) {
                     match correspondence.iter().next() {
                         Some(Some(value)) => {
-                            let length = value.as_str().len();
+                            let value = value.as_str();
+                            let length = value.len();
 
                             let result = match spec.kind {
-                                TokenizerSpecType::Number => match value.as_str().parse() {
+                                TokenizerSpecType::Number => match value.parse() {
                                     Ok(parsed) => Ok(Token::Number(parsed)),
-                                    Err(_) => Err(format!(
-                                        "{} is too large for type 'Number'",
-                                        value.as_str()
-                                    )),
+                                    Err(_) => {
+                                        Err(format!("{} is too large for type 'Number'", value))
+                                    }
                                 },
                                 TokenizerSpecType::String => {
-                                    Ok(Token::String((&value.as_str()[1..length - 1]).to_owned()))
+                                    Ok(Token::String((&value[1..length - 1]).to_owned()))
                                 }
                                 TokenizerSpecType::SimpleType => {
-                                    Ok(Token::SimpleType(value.as_str().to_owned()))
+                                    Ok(Token::SimpleType(value.to_owned()))
                                 }
+                                TokenizerSpecType::Pipe => Ok(Token::Pipe),
                                 TokenizerSpecType::Skip => {
                                     // Skip this token
                                     self.cursor += length;

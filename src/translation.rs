@@ -16,7 +16,7 @@ impl From<TranslationKey> for &'static str {
             TranslationKey::UnexpectedSymbol => "UnexpectedSymbol",
             TranslationKey::UnexpectedSymbolComplete => "UnexpectedSymbolComplete",
             TranslationKey::ExpectedLiteral => "ExpectedLiteral",
-            &TranslationKey::ExpectedType => "ExpectedType",
+            TranslationKey::ExpectedType => "ExpectedType",
             TranslationKey::None => "None",
         }
     }

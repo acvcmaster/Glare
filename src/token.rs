@@ -5,6 +5,7 @@ pub enum Token {
     String(String),
     Number(i64),
     SimpleType(String),
+    Pipe,
 }
 
 impl Display for Token {
@@ -13,6 +14,7 @@ impl Display for Token {
             Token::String(value) => write!(f, "string '{}'", value),
             Token::Number(value) => write!(f, "number '{}'", value),
             Token::SimpleType(value) => write!(f, "type '{}'", value),
+            Token::Pipe => write!(f, "pipe"),
         }
     }
 }
