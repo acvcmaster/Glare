@@ -12,18 +12,19 @@ mod translation;
 fn main() {
     configure_language();
 
-    let a = "
+    let a = r#"
         /**
          * This is a multiline comment.
          * It has multiple lines.
          */
         
-        42
-    ";
+        None
+    "#;
     let mut tokenizer = Tokenizer::new(a);
     let mut parser = Parser::new(&mut tokenizer);
 
-    let result = parser.literal().unwrap();
-
-    println!("{:?}", result);
+    match parser.parse_literal() {
+        Ok(result) => println!("{:?}", result),
+        Err(error) => println!("{}", error),
+    }
 }

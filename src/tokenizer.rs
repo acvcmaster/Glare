@@ -5,6 +5,7 @@ use crate::token::Token;
 pub enum TokenizerSpecType {
     Number,
     String,
+    SimpleType,
     Skip,
 }
 
@@ -51,6 +52,10 @@ impl<'a> Tokenizer<'a> {
                 regex: Regex::new(r"^/\*[\s\S]*?\*/").unwrap(),
                 kind: TokenizerSpecType::Skip,
             },
+            TokenizerSpec {
+                regex: Regex::new(r"^Number|str|String|None|()|Never|List|Array").unwrap(),
+                kind: TokenizerSpecType::SimpleType,
+            },
         ];
 
         /* Initializes new tokenizer with the
@@ -80,6 +85,9 @@ impl<'a> Tokenizer<'a> {
                                 },
                                 TokenizerSpecType::String => {
                                     Ok(Token::String((&value.as_str()[1..length - 1]).to_owned()))
+                                }
+                                TokenizerSpecType::SimpleType => {
+                                    Ok(Token::SimpleType(value.as_str().to_owned()))
                                 }
                                 TokenizerSpecType::Skip => {
                                     // Skip this token

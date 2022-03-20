@@ -6,6 +6,7 @@ pub enum TranslationKey {
     UnexpectedSymbol,
     UnexpectedSymbolComplete,
     ExpectedLiteral,
+    ExpectedType,
     None,
 }
 
@@ -14,7 +15,8 @@ impl From<TranslationKey> for &'static str {
         match &val {
             TranslationKey::UnexpectedSymbol => "UnexpectedSymbol",
             TranslationKey::UnexpectedSymbolComplete => "UnexpectedSymbolComplete",
-            &TranslationKey::ExpectedLiteral => "ExpectedLiteral",
+            TranslationKey::ExpectedLiteral => "ExpectedLiteral",
+            &TranslationKey::ExpectedType => "ExpectedType",
             TranslationKey::None => "None",
         }
     }

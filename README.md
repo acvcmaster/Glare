@@ -65,7 +65,6 @@ SimpleType:
     | '()'
     | 'Never'
     | 'List'
-    | 'Array'
 ;
 ```
 
