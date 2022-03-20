@@ -5,6 +5,7 @@ use crate::token::Token;
 pub enum TokenizerSpecType {
     Number,
     String,
+    Whitespace,
 }
 
 pub struct TokenizerSpec {
@@ -38,6 +39,10 @@ impl<'a> Tokenizer<'a> {
                 regex: Regex::new(r"^`[^`]*`").unwrap(),
                 kind: TokenizerSpecType::String,
             },
+            TokenizerSpec {
+                regex: Regex::new(r"^\s+").unwrap(),
+                kind: TokenizerSpecType::Whitespace,
+            },
         ];
 
         /* Initializes new tokenizer with the
@@ -52,7 +57,7 @@ impl<'a> Tokenizer<'a> {
     pub fn get_next_token(&mut self) -> Result<Token, String> {
         if self.has_more_tokens() {
             for spec in &self.specs {
-                if let Some(correspondence) = spec.regex.captures(self.string) {
+                if let Some(correspondence) = spec.regex.captures(&self.string[self.cursor..]) {
                     match correspondence.iter().next() {
                         Some(Some(value)) => {
                             let length = value.as_str().len();
@@ -64,6 +69,11 @@ impl<'a> Tokenizer<'a> {
                                 },
                                 TokenizerSpecType::String => {
                                     Ok(Token::String((&value.as_str()[1..length - 1]).to_owned()))
+                                }
+                                _ => {
+                                    // Skip this token
+                                    self.cursor += length;
+                                    return self.get_next_token();
                                 }
                             };
 

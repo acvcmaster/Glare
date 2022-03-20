@@ -1,3 +1,4 @@
+use parser::Parser;
 use translation::configure_language;
 
 use crate::tokenizer::Tokenizer;
@@ -6,14 +7,15 @@ mod token;
 mod tokenizer;
 mod translation;
 mod languages;
+mod parser;
 
 fn main() {
     configure_language();
-    let a = r#""Test string with double quotes""#;
+    let a = "            42          ";
     let mut tokenizer = Tokenizer::new(a);
+    let mut parser = Parser::new(&mut tokenizer);
 
-    match tokenizer.get_next_token() {
-        Ok(token) => println!("{:?}", token),
-        Err(error) => println!("{}", error),
-    }
+    let result = parser.literal().unwrap();
+
+    println!("{:?}", result);
 }

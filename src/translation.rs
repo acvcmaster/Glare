@@ -5,6 +5,7 @@ use crate::languages::english::ENGLISH;
 pub enum TranslationKey {
     UnexpectedSymbol,
     UnexpectedSymbolComplete,
+    ExpectedLiteral,
     None,
 }
 
@@ -13,6 +14,7 @@ impl From<TranslationKey> for &'static str {
         match &val {
             TranslationKey::UnexpectedSymbol => "UnexpectedSymbol",
             TranslationKey::UnexpectedSymbolComplete => "UnexpectedSymbolComplete",
+            &TranslationKey::ExpectedLiteral => "ExpectedLiteral",
             TranslationKey::None => "None",
         }
     }
@@ -45,9 +47,9 @@ pub fn configure_language() {
 }
 
 pub fn get_translated(key: TranslationKey) -> &'static str {
-    unsafe {
-        let key: &'static str = key.into();
+    let key: &'static str = key.into();
 
+    unsafe {
         match LANGUAGE {
             Language::English => ENGLISH[key],
             Language::Portuguese => todo!(),

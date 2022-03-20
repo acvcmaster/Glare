@@ -50,7 +50,7 @@ match sub(a, b), sub(c, d):
 ### Literal
 ```
 Literal:
-	NumberLiteral
+	: NumberLiteral
 	| StringLiteral
 ;
 ```
@@ -58,7 +58,7 @@ Literal:
 ### Simple Type
 ```
 SimpleType:
-    'Number'
+    : 'Number'
     | 'str'
     | 'String'
     | 'None'
@@ -72,7 +72,7 @@ SimpleType:
 ### Skip
 ```
 Skip:
-    Whitespace
-    NewLine
+    : Whitespace
+    | NewLine
 ;
 ```
