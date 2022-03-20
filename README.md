@@ -73,6 +73,7 @@ SimpleType:
 ```
 Skip:
     : Whitespace
-    | NewLine
+    | Comment
+    | MultilineComment
 ;
 ```
