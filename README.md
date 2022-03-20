@@ -45,7 +45,7 @@ match sub(a, b), sub(c, d):
  
 ```
  
-## Grammar
+## Grammar (BNF Notation)
 
 ### Literal
 ```
