@@ -48,6 +48,7 @@ pub struct UnionType {
 }
 
 impl<'a> Parser<'a> {
+    /** Initializes the parser. */
     pub fn new(tokenizer: &'a mut Tokenizer<'a>) -> Self {
         Self { tokenizer }
     }
