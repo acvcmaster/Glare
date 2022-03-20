@@ -5,7 +5,7 @@ use crate::token::Token;
 pub enum TokenizerSpecType {
     Number,
     String,
-    Whitespace,
+    Skip,
 }
 
 pub struct TokenizerSpec {
@@ -41,7 +41,15 @@ impl<'a> Tokenizer<'a> {
             },
             TokenizerSpec {
                 regex: Regex::new(r"^\s+").unwrap(),
-                kind: TokenizerSpecType::Whitespace,
+                kind: TokenizerSpecType::Skip,
+            },
+            TokenizerSpec {
+                regex: Regex::new(r"^//.*").unwrap(),
+                kind: TokenizerSpecType::Skip,
+            },
+            TokenizerSpec {
+                regex: Regex::new(r"^/\*[\s\S]*?\*/").unwrap(),
+                kind: TokenizerSpecType::Skip,
             },
         ];
 
@@ -65,12 +73,15 @@ impl<'a> Tokenizer<'a> {
                             let result = match spec.kind {
                                 TokenizerSpecType::Number => match value.as_str().parse() {
                                     Ok(parsed) => Ok(Token::Number(parsed)),
-                                    Err(_) => continue,
+                                    Err(_) => Err(format!(
+                                        "{} is too large for type 'Number'",
+                                        value.as_str()
+                                    )),
                                 },
                                 TokenizerSpecType::String => {
                                     Ok(Token::String((&value.as_str()[1..length - 1]).to_owned()))
                                 }
-                                _ => {
+                                TokenizerSpecType::Skip => {
                                     // Skip this token
                                     self.cursor += length;
                                     return self.get_next_token();
