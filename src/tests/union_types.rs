@@ -19,7 +19,7 @@ fn union_type_ok() {
 }
 
 #[test]
-fn pipe_err() {
+fn union_type_err() {
     let mut tokenizer = Tokenizer::new("String | str | ");
     let mut parser = Parser::new(&mut tokenizer);
 

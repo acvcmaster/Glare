@@ -138,17 +138,15 @@ impl<'a> Parser<'a> {
                                 if self.tokenizer.get_next_token(true).is_ok() {
                                     let next = self.parse_union_type();
                                     return match next {
-                                        Ok(next) => {
-                                            for simple_type in next.types {
-                                                types.push(simple_type);
-                                            }
+                                        Ok(mut next) => {
+                                            types.append(&mut next.types);
                                             return Ok(UnionType { types });
                                         }
                                         Err(error) => Err(error),
                                     };
                                 }
                             }
-                            
+
                             Ok(UnionType { types })
                         }
                         Err(_) => Err(format!("Expected valid simple type (got {})", token)),
