@@ -7,9 +7,8 @@ use crate::{
 fn union_type_ok() {
     let mut tokenizer = Tokenizer::new("String | str | Number");
     let mut parser = Parser::new(&mut tokenizer);
-    let parsed = parser.parse_union_type();
 
-    assert!(match parsed {
+    assert!(match parser.parse_union_type() {
         Ok(parsed) =>
             parsed.has_type(SimpleType::String)
                 && parsed.has_type(SimpleType::Str)
