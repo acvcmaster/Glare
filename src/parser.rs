@@ -21,9 +21,10 @@ pub enum SimpleType {
     List,
 }
 
-#[derive(Debug)]
-pub enum Type {
-    SimpleType(SimpleType),
+impl PartialEq for SimpleType {
+    fn eq(&self, other: &Self) -> bool {
+        core::mem::discriminant(self) == core::mem::discriminant(other)
+    }
 }
 
 impl TryFrom<String> for SimpleType {
@@ -43,8 +44,15 @@ impl TryFrom<String> for SimpleType {
     }
 }
 
+#[derive(Debug)]
 pub struct UnionType {
-    types: Vec<SimpleType>,
+    pub types: Vec<SimpleType>,
+}
+
+impl UnionType {
+    pub fn has_type(&self, simple_type: SimpleType) -> bool {
+        self.types.contains(&simple_type)
+    }
 }
 
 impl<'a> Parser<'a> {
@@ -114,38 +122,41 @@ impl<'a> Parser<'a> {
 
     /**
      * UnionType
-     *  : SimpleType (Pipe SimpleTipe)*
+     *  : SimpleType
+     *  : SimpleType Pipe UnionType
      * ;
      */
-    pub fn parse_union_type(&mut self) -> Result<SimpleType, String> {
-        let mut pipe = false;
+    pub fn parse_union_type(&mut self) -> Result<UnionType, String> {
+        match self.tokenizer.get_next_token(true) {
+            Ok(Some(token)) => match &token {
+                Token::SimpleType(simple_type) => {
+                    match SimpleType::try_from(simple_type.to_owned()) {
+                        Ok(simple_type) => {
+                            let mut types = vec![simple_type];
 
-        loop {
-            let error = format!(
-                "Expected {} (got EOF)",
-                if pipe { "pipe" } else { "simple type" }
-            );
-
-            let result = match self.tokenizer.get_next_token(true) {
-                Ok(Some(token)) => Ok(()),
-                Ok(None) => Err(error),
-                Err(error) => Err(error),
-            };
-
-            /* Toggle pipe */
-            pipe = !pipe;
-        }
-    }
-
-    /**
-     * Type
-     *  : UnionType
-     *  | SimpleType
-     * ;
-     */
-    pub fn parse_type(&mut self) -> Result<Type, String> {
-        match self.parse_simple_type() {
-            Ok(value) => Ok(Type::SimpleType(value)),
+                            if let Ok(Some(Token::Pipe)) = self.tokenizer.get_next_token(false) {
+                                if self.tokenizer.get_next_token(true).is_ok() {
+                                    let next = self.parse_union_type();
+                                    return match next {
+                                        Ok(next) => {
+                                            for simple_type in next.types {
+                                                types.push(simple_type);
+                                            }
+                                            return Ok(UnionType { types });
+                                        }
+                                        Err(error) => Err(error),
+                                    };
+                                }
+                            }
+                            
+                            Ok(UnionType { types })
+                        }
+                        Err(_) => Err(format!("Expected valid simple type (got {})", token)),
+                    }
+                }
+                _ => Err(format!("Expected simple type (got {})", token)),
+            },
+            Ok(None) => Err("Expected simple type (got EOF)".to_string()),
             Err(error) => Err(error),
         }
     }

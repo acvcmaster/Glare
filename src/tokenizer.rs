@@ -50,7 +50,7 @@ impl<'a> Tokenizer<'a> {
                 kind: TokenizerSpecType::Skip,
             },
             TokenizerSpec {
-                regex: Regex::new(r"^Number|str|String|None|\(\)|Never|List|Array").unwrap(),
+                regex: Regex::new(r"^(?:Number|str|String|None|\(\)|Never|List|Array)").unwrap(),
                 kind: TokenizerSpecType::SimpleType,
             },
             TokenizerSpec {
