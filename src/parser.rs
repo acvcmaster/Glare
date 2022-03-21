@@ -59,8 +59,8 @@ impl<'a> Parser<'a> {
      *  | NumberLiteral
      *  ;
      */
-    pub fn parse_literal(&mut self, consume: bool) -> Result<Literal, String> {
-        match self.tokenizer.get_next_token(consume) {
+    pub fn parse_literal(&mut self) -> Result<Literal, String> {
+        match self.tokenizer.get_next_token(true) {
             Ok(Some(token)) => match token {
                 Token::String(string) => Ok(Literal::StringLiteral(string)),
                 Token::Number(number) => Ok(Literal::NumberLiteral(number)),
@@ -82,8 +82,8 @@ impl<'a> Parser<'a> {
      *  | List
      * ;
      */
-    pub fn parse_simple_type(&mut self, consume: bool) -> Result<SimpleType, String> {
-        match self.tokenizer.get_next_token(consume) {
+    pub fn parse_simple_type(&mut self) -> Result<SimpleType, String> {
+        match self.tokenizer.get_next_token(true) {
             Ok(Some(token)) => match token {
                 Token::SimpleType(value) => match SimpleType::try_from(value) {
                     Ok(result) => Ok(result),
@@ -101,8 +101,8 @@ impl<'a> Parser<'a> {
      *  : |
      * ;
      */
-    pub fn parse_pipe(&mut self, consume: bool) -> Result<(), String> {
-        match self.tokenizer.get_next_token(consume) {
+    pub fn parse_pipe(&mut self) -> Result<(), String> {
+        match self.tokenizer.get_next_token(true) {
             Ok(Some(token)) => match token {
                 Token::Pipe => Ok(()),
                 _ => Err(format!("Expected pipe (got {})", token)),
@@ -117,7 +117,7 @@ impl<'a> Parser<'a> {
      *  : SimpleType (Pipe SimpleTipe)*
      * ;
      */
-    pub fn parse_union_type(&mut self, consume: bool) -> Result<SimpleType, String> {
+    pub fn parse_union_type(&mut self) -> Result<SimpleType, String> {
         let mut pipe = false;
 
         loop {
@@ -126,7 +126,7 @@ impl<'a> Parser<'a> {
                 if pipe { "pipe" } else { "simple type" }
             );
 
-            let result = match self.tokenizer.get_next_token(false) {
+            let result = match self.tokenizer.get_next_token(true) {
                 Ok(Some(token)) => Ok(()),
                 Ok(None) => Err(error),
                 Err(error) => Err(error),
@@ -143,8 +143,8 @@ impl<'a> Parser<'a> {
      *  | SimpleType
      * ;
      */
-    pub fn parse_type(&mut self, consume: bool) -> Result<Type, String> {
-        match self.parse_simple_type(consume) {
+    pub fn parse_type(&mut self) -> Result<Type, String> {
+        match self.parse_simple_type() {
             Ok(value) => Ok(Type::SimpleType(value)),
             Err(error) => Err(error),
         }
