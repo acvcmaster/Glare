@@ -123,7 +123,7 @@ impl<'a> Parser<'a> {
     /**
      * UnionType
      *  : SimpleType
-     *  : SimpleType Pipe UnionType
+     *  | SimpleType Pipe UnionType
      * ;
      */
     pub fn parse_union_type(&mut self) -> Result<UnionType, String> {
@@ -138,9 +138,9 @@ impl<'a> Parser<'a> {
                                 if self.tokenizer.get_next_token(true).is_ok() {
                                     let next = self.parse_union_type();
                                     return match next {
-                                        Ok(mut next) => {
-                                            types.append(&mut next.types);
-                                            return Ok(UnionType { types });
+                                        Ok(next) => {
+                                            types.extend(next.types);
+                                            Ok(UnionType { types })
                                         }
                                         Err(error) => Err(error),
                                     };
