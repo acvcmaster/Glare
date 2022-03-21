@@ -8,6 +8,8 @@ pub enum TokenizerSpecType {
     SimpleType,
     Pipe,
     Skip,
+    Tab,
+    LineBreak,
 }
 
 pub struct TokenizerSpec {
@@ -25,10 +27,12 @@ impl<'a> Tokenizer<'a> {
     /** Initializes tokenizer */
     pub fn new(string: &'a str) -> Self {
         let specs = vec![
+            // Numbers
             TokenizerSpec {
                 regex: Regex::new(r"^\d+").unwrap(),
                 kind: TokenizerSpecType::Number,
             },
+            // String delimiters
             TokenizerSpec {
                 regex: Regex::new(r"^'[^']*'").unwrap(),
                 kind: TokenizerSpecType::String,
@@ -41,21 +45,31 @@ impl<'a> Tokenizer<'a> {
                 regex: Regex::new(r"^`[^`]*`").unwrap(),
                 kind: TokenizerSpecType::String,
             },
+            // Separators
             TokenizerSpec {
-                regex: Regex::new(r"^\s+").unwrap(),
+                regex: Regex::new(r"^(?:\t|(?:[ ]{4})){1}").unwrap(),
+                kind: TokenizerSpecType::Tab,
+            },
+            TokenizerSpec {
+                regex: Regex::new(r"^(?:\n|\r\n)+").unwrap(),
+                kind: TokenizerSpecType::LineBreak,
+            },
+            TokenizerSpec {
+                regex: Regex::new(r"^\|").unwrap(),
+                kind: TokenizerSpecType::Pipe,
+            },
+            TokenizerSpec {
+                regex: Regex::new(r"^[ ]+").unwrap(),
                 kind: TokenizerSpecType::Skip,
             },
             TokenizerSpec {
                 regex: Regex::new(r"^\#.*").unwrap(),
                 kind: TokenizerSpecType::Skip,
             },
+            // Types
             TokenizerSpec {
                 regex: Regex::new(r"^(?:Number|str|String|None|\(\)|Never|List|Array)").unwrap(),
                 kind: TokenizerSpecType::SimpleType,
-            },
-            TokenizerSpec {
-                regex: Regex::new(r"^\|").unwrap(),
-                kind: TokenizerSpecType::Pipe,
             },
         ];
 
@@ -96,6 +110,8 @@ impl<'a> Tokenizer<'a> {
                                     self.cursor += length;
                                     return self.get_next_token(consume);
                                 }
+                                TokenizerSpecType::Tab => Ok(Some(Token::Tab)),
+                                TokenizerSpecType::LineBreak => Ok(Some(Token::LineBreak)),
                             };
 
                             if consume {

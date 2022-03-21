@@ -49,6 +49,10 @@ impl UnionType {
     }
 }
 
+pub struct Identation {
+    pub count: usize,
+}
+
 impl<'a> Parser<'a> {
     /** Initializes the parser. */
     pub fn new(tokenizer: &'a mut Tokenizer<'a>) -> Self {
@@ -149,6 +153,54 @@ impl<'a> Parser<'a> {
                 _ => Err(format!("Expected simple type (got {})", token)),
             },
             Ok(None) => Err("Expected simple type (got EOF)".to_string()),
+            Err(error) => Err(error),
+        }
+    }
+
+    /**
+     * Identation
+     *  : Tab Identation
+     * ;
+     */
+    pub fn parse_identation(&mut self) -> Result<Identation, String> {
+        match self.tokenizer.get_next_token(true) {
+            Ok(Some(token)) => match token {
+                Token::Tab => {
+                    if let Ok(Some(Token::Tab)) = self.tokenizer.get_next_token(false) {
+                        return match self.parse_identation() {
+                            Ok(result) => Ok(Identation {
+                                count: 1 + result.count,
+                            }),
+                            Err(error) => Err(error),
+                        };
+                    }
+
+                    Ok(Identation { count: 1 })
+                }
+                _ => Err(format!("Expected identation (got {})", token)),
+            },
+            Ok(None) => Err(format!("Expected identation (got {})", Token::EOF)),
+            Err(error) => Err(error),
+        }
+    }
+
+    /**
+     * LineBreak
+     *  : \n
+     *  | \r\n
+     * ;
+     */
+    pub fn parse_line_break(&mut self) -> Result<(), String> {
+        match self.tokenizer.get_next_token(true) {
+            Ok(Some(token)) => match token {
+                Token::LineBreak => Ok(()),
+                _ => Err(format!("Expected {} (got {})", Token::LineBreak, token)),
+            },
+            Ok(None) => Err(format!(
+                "Expected {} (got {})",
+                Token::LineBreak,
+                Token::EOF
+            )),
             Err(error) => Err(error),
         }
     }

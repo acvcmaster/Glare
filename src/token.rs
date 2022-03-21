@@ -6,6 +6,9 @@ pub enum Token {
     Number(i64),
     SimpleType(String),
     Pipe,
+    Tab,
+    LineBreak,
+    EOF,
 }
 
 impl Display for Token {
@@ -15,6 +18,9 @@ impl Display for Token {
             Token::Number(value) => write!(f, "number '{}'", value),
             Token::SimpleType(value) => write!(f, "type '{}'", value),
             Token::Pipe => write!(f, "pipe"),
+            Token::Tab => write!(f, "tab"),
+            Token::LineBreak => write!(f, "new line"),
+            Token::EOF => write!(f, "EOF"),
         }
     }
 }
