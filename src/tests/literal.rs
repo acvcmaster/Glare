@@ -36,5 +36,5 @@ fn literal_err() {
     let mut tokenizer = Tokenizer::new("# Comment");
     let mut parser = Parser::new(&mut tokenizer);
 
-    assert!(parser.parse_literal(true).is_err())
+    assert!(parser.parse_literal(false).is_err())
 }
