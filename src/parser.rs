@@ -10,7 +10,7 @@ pub enum Literal {
     NumberLiteral(i64),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum SimpleType {
     Number,
     Str,
@@ -19,12 +19,6 @@ pub enum SimpleType {
     Empty,
     Never,
     List,
-}
-
-impl PartialEq for SimpleType {
-    fn eq(&self, other: &Self) -> bool {
-        core::mem::discriminant(self) == core::mem::discriminant(other)
-    }
 }
 
 impl TryFrom<String> for SimpleType {
