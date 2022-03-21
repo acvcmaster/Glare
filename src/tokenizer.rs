@@ -9,7 +9,6 @@ pub enum TokenizerSpecType {
     Pipe,
     Skip,
     Tab,
-    LineBreak,
 }
 
 pub struct TokenizerSpec {
@@ -51,15 +50,11 @@ impl<'a> Tokenizer<'a> {
                 kind: TokenizerSpecType::Tab,
             },
             TokenizerSpec {
-                regex: Regex::new(r"^(?:\n|\r\n)+").unwrap(),
-                kind: TokenizerSpecType::LineBreak,
-            },
-            TokenizerSpec {
                 regex: Regex::new(r"^\|").unwrap(),
                 kind: TokenizerSpecType::Pipe,
             },
             TokenizerSpec {
-                regex: Regex::new(r"^[ ]+").unwrap(),
+                regex: Regex::new(r"^\s+").unwrap(),
                 kind: TokenizerSpecType::Skip,
             },
             TokenizerSpec {
@@ -111,7 +106,6 @@ impl<'a> Tokenizer<'a> {
                                     return self.get_next_token(consume);
                                 }
                                 TokenizerSpecType::Tab => Ok(Some(Token::Tab)),
-                                TokenizerSpecType::LineBreak => Ok(Some(Token::LineBreak)),
                             };
 
                             if consume {

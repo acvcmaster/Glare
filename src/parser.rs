@@ -183,25 +183,4 @@ impl<'a> Parser<'a> {
             Err(error) => Err(error),
         }
     }
-
-    /**
-     * LineBreak
-     *  : \n
-     *  | \r\n
-     * ;
-     */
-    pub fn parse_line_break(&mut self) -> Result<(), String> {
-        match self.tokenizer.get_next_token(true) {
-            Ok(Some(token)) => match token {
-                Token::LineBreak => Ok(()),
-                _ => Err(format!("Expected {} (got {})", Token::LineBreak, token)),
-            },
-            Ok(None) => Err(format!(
-                "Expected {} (got {})",
-                Token::LineBreak,
-                Token::EOF
-            )),
-            Err(error) => Err(error),
-        }
-    }
 }
