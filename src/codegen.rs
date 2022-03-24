@@ -17,3 +17,7 @@ impl Compilable for Literal {
         }
     }
 }
+
+pub fn compile(node: &dyn Compilable, target: Target) -> Option<String> {
+    node.compile(target)
+}
