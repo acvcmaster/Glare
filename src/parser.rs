@@ -1,3 +1,5 @@
+use std::collections::btree_set::Union;
+
 use crate::{token::Token, tokenizer::Tokenizer};
 
 pub struct Parser<'a> {
@@ -51,6 +53,16 @@ impl UnionType {
 
 pub struct Identation {
     pub count: usize,
+}
+
+pub struct Variable {
+    pub name: String,
+}
+
+pub struct Declaration {
+    pub variable: Variable,
+    pub union_type: Option<UnionType>,
+    pub literal: Literal,
 }
 
 impl<'a> Parser<'a> {
@@ -125,34 +137,25 @@ impl<'a> Parser<'a> {
      * ;
      */
     pub fn parse_union_type(&mut self) -> Result<UnionType, String> {
-        match self.tokenizer.get_next_token(true) {
-            Ok(Some(token)) => match &token {
-                Token::SimpleType(simple_type) => {
-                    match SimpleType::try_from(simple_type.to_owned()) {
-                        Ok(simple_type) => {
-                            let mut types = vec![simple_type];
+        match self.parse_simple_type() {
+            Ok(simple_type) => {
+                let mut types = vec![simple_type];
 
-                            if let Ok(Some(Token::Pipe)) = self.tokenizer.get_next_token(false) {
-                                if self.tokenizer.get_next_token(true).is_ok() {
-                                    let next = self.parse_union_type();
-                                    return match next {
-                                        Ok(next) => {
-                                            types.extend(next.types);
-                                            Ok(UnionType { types })
-                                        }
-                                        Err(error) => Err(error),
-                                    };
-                                }
+                if let Ok(Some(Token::Pipe)) = self.tokenizer.get_next_token(false) {
+                    if self.tokenizer.get_next_token(true).is_ok() {
+                        let next = self.parse_union_type();
+                        return match next {
+                            Ok(next) => {
+                                types.extend(next.types);
+                                Ok(UnionType { types })
                             }
-
-                            Ok(UnionType { types })
-                        }
-                        Err(_) => Err(format!("Expected valid simple type (got {})", token)),
+                            Err(error) => Err(error),
+                        };
                     }
                 }
-                _ => Err(format!("Expected simple type (got {})", token)),
-            },
-            Ok(None) => Err("Expected simple type (got EOF)".to_string()),
+
+                Ok(UnionType { types })
+            }
             Err(error) => Err(error),
         }
     }
@@ -180,6 +183,86 @@ impl<'a> Parser<'a> {
                 _ => Err(format!("Expected identation (got {})", token)),
             },
             Ok(None) => Err(format!("Expected identation (got {})", Token::EOF)),
+            Err(error) => Err(error),
+        }
+    }
+
+    pub fn parse_variable(&mut self) -> Result<Variable, String> {
+        match self.tokenizer.get_next_token(true) {
+            Ok(Some(token)) => match token {
+                Token::Variable(name) => Ok(Variable { name }),
+                _ => Err(format!("Expected variable (got {})", token)),
+            },
+            Ok(None) => Err(format!("Expected variable (got {})", Token::EOF)),
+            Err(error) => Err(error),
+        }
+    }
+
+    pub fn parse_declaration(&mut self) -> Result<Declaration, String> {
+        match self.parse_variable() {
+            Ok(variable) => match self.tokenizer.get_next_token(false) {
+                Ok(Some(token)) => match token {
+                    Token::Colon => {
+                        if let Ok(Some(Token::Colon)) = self.tokenizer.get_next_token(true) {
+                            return match self.parse_union_type() {
+                                Ok(union_type) => match self.tokenizer.get_next_token(true) {
+                                    Ok(Some(token)) => match token {
+                                        Token::Equal => match self.parse_literal() {
+                                            Ok(literal) => Ok(Declaration {
+                                                variable,
+                                                union_type: Some(union_type),
+                                                literal,
+                                            }),
+                                            Err(error) => Err(error),
+                                        },
+                                        _ => Err(format!(
+                                            "Expected {} (got {})",
+                                            Token::Equal,
+                                            token
+                                        )),
+                                    },
+                                    Ok(None) => Err(format!(
+                                        "Expected {} (got {})",
+                                        Token::Equal,
+                                        Token::EOF
+                                    )),
+                                    Err(error) => Err(error),
+                                },
+                                Err(error) => Err(error),
+                            };
+                        }
+
+                        Err("Unexpected error parsing declaration".to_string())
+                    }
+                    Token::Equal => {
+                        if let Ok(Some(Token::Equal)) = self.tokenizer.get_next_token(true) {
+                            return match self.parse_literal() {
+                                Ok(literal) => Ok(Declaration {
+                                    variable,
+                                    union_type: None,
+                                    literal,
+                                }),
+                                Err(error) => Err(error),
+                            };
+                        }
+
+                        Err("Unexpected error parsing declaration".to_string())
+                    }
+                    _ => Err(format!(
+                        "Expected {} or {} (got {})",
+                        Token::Colon,
+                        Token::Equal,
+                        token
+                    )),
+                },
+                Ok(None) => Err(format!(
+                    "Expected {} or {} (got {})",
+                    Token::Colon,
+                    Token::Equal,
+                    Token::EOF
+                )),
+                Err(error) => Err(error),
+            },
             Err(error) => Err(error),
         }
     }

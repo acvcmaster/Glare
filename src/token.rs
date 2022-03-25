@@ -9,6 +9,9 @@ pub enum Token {
     Tab,
     LineBreak,
     EOF,
+    Variable(String),
+    Colon,
+    Equal,
 }
 
 impl Display for Token {
@@ -21,6 +24,9 @@ impl Display for Token {
             Token::Tab => write!(f, "tab"),
             Token::LineBreak => write!(f, "new line"),
             Token::EOF => write!(f, "EOF"),
+            Token::Variable(value) => write!(f, "variable '{}'", value),
+            Token::Colon => write!(f, ":"),
+            Token::Equal => write!(f, "="),
         }
     }
 }

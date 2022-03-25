@@ -9,6 +9,9 @@ pub enum TokenizerSpecType {
     Pipe,
     Skip,
     Tab,
+    Variable,
+    Colon,
+    Equal,
 }
 
 pub struct TokenizerSpec {
@@ -66,6 +69,19 @@ impl<'a> Tokenizer<'a> {
                 regex: Regex::new(r"^(?:Number|str|String|None|\(\)|Never|List|Array)").unwrap(),
                 kind: TokenizerSpecType::SimpleType,
             },
+            TokenizerSpec {
+                regex: Regex::new(r#"^:"#).unwrap(),
+                kind: TokenizerSpecType::Colon,
+            },
+            TokenizerSpec {
+                regex: Regex::new(r"^=").unwrap(),
+                kind: TokenizerSpecType::Equal,
+            },
+            // Variable
+            TokenizerSpec {
+                regex: Regex::new(r"^[^0-9]{1}\w*").unwrap(),
+                kind: TokenizerSpecType::Variable,
+            },
         ];
 
         /* Initializes new tokenizer with the
@@ -106,6 +122,11 @@ impl<'a> Tokenizer<'a> {
                                     return self.get_next_token(consume);
                                 }
                                 TokenizerSpecType::Tab => Ok(Some(Token::Tab)),
+                                TokenizerSpecType::Variable => {
+                                    Ok(Some(Token::Variable(value.to_owned())))
+                                }
+                                TokenizerSpecType::Colon => Ok(Some(Token::Colon)),
+                                TokenizerSpecType::Equal => Ok(Some(Token::Equal)),
                             };
 
                             if consume {
