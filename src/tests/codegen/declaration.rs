@@ -1,6 +1,6 @@
 use crate::{
     codegen::{compile, Target},
-    parser::{Declaration, Literal, SimpleType, UnionType, Variable},
+    parser::{Declaration, Literal, Variable},
 };
 
 #[test]
