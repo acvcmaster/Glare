@@ -4,6 +4,7 @@ use serde_json::{from_str, Value};
 use tinytemplate::TinyTemplate;
 
 use crate::languages::english::ENGLISH;
+use crate::languages::portuguese::PORTUGUESE;
 
 pub enum TranslationKey {
     UnexpectedSymbol,
@@ -36,7 +37,18 @@ impl From<String> for Language {
         match string.as_str() {
             "Portuguese" | "Português" => Language::Portuguese,
             "Japanese" | "日本語" => Language::Japanese,
+            "English" => Language::English,
             _ => Language::English,
+        }
+    }
+}
+
+impl From<Language> for String {
+    fn from(val: Language) -> Self {
+        match val {
+            Language::English => "English".to_string(),
+            Language::Portuguese => "Portuguese".to_string(),
+            Language::Japanese => "Japanese".to_string(),
         }
     }
 }
@@ -45,7 +57,7 @@ static mut LANGUAGE: Language = Language::English;
 static mut TEMPLATE_ENGINE: Option<TinyTemplate> = None;
 
 pub fn configure_language() {
-    let env_language = env::var("GLARE_LANGUAGE").unwrap_or_else(|_| "ENGLISH".to_string());
+    let env_language = env::var("GLARE_LANGUAGE").unwrap_or_else(|_| Language::English.into());
 
     unsafe {
         LANGUAGE = Language::from(env_language);
@@ -76,7 +88,7 @@ pub fn get_template(key: &TranslationKey) -> &'static str {
     unsafe {
         match LANGUAGE {
             Language::English => ENGLISH[key],
-            Language::Portuguese => todo!(),
+            Language::Portuguese => PORTUGUESE[key],
             Language::Japanese => todo!(),
         }
     }
